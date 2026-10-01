@@ -19,8 +19,8 @@ export const PRODUCTS = [
     subtitle:
       "Handcrafted from solid wood with a polished brass bell. Mount it on any door — every time the door swings, it produces a clear, soothing ring. No batteries, no wires.",
     badge: "Best Seller",
-    price: 499,
-    oldPrice: 690,
+    price: 299,
+    oldPrice: 399,
     currency: "BDT",
     currencySymbol: "৳",
 
@@ -81,8 +81,8 @@ export const PRODUCTS = [
     subtitle:
       "Handcrafted from real, sustainably-sourced coconut shells. Lightweight, durable, naturally beautiful — perfect for smoothie bowls, salads, snacks, or as a decor piece. Live naturally.",
     badge: "New",
-    price: 399,
-    oldPrice: 599,
+    price: 299,
+    oldPrice: 399,
     currency: "BDT",
     currencySymbol: "৳",
 
