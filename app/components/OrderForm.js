@@ -1,14 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatBDT } from "../products";
 import SuccessModal from "./SuccessModal";
 import { useSelection } from "./SelectionContext";
 import { normalizeBDPhone, validateOrder } from "../validation";
+import { trackEvent } from "../analytics";
 
 const MAX_QTY = 10;
 const FIELD_ORDER = ["name", "phone", "email", "address", "notes"];
+// Contact fields remembered on this device for returning customers.
+const SAVED_KEY = "ankito:customer";
+const SAVED_FIELDS = ["name", "phone", "email", "address"];
+
+function loadSavedCustomer() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCustomer(values) {
+  try {
+    const data = Object.fromEntries(SAVED_FIELDS.map((f) => [f, values[f] || ""]));
+    localStorage.setItem(SAVED_KEY, JSON.stringify(data));
+  } catch {
+    // Storage unavailable (private mode etc.) — nothing to remember.
+  }
+}
 
 function FieldError({ id, message }) {
   if (!message) return null;
@@ -26,8 +47,19 @@ export default function OrderForm() {
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [order, setOrder] = useState(null); // set after a successful order
   const [fieldErrors, setFieldErrors] = useState({});
+  const formRef = useRef(null);
+
+  // Pre-fill contact details saved from a previous order on this device.
+  useEffect(() => {
+    const saved = loadSavedCustomer();
+    const form = formRef.current;
+    if (!saved || !form) return;
+    for (const f of SAVED_FIELDS) {
+      if (saved[f] && form.elements[f] && !form.elements[f].value) form.elements[f].value = saved[f];
+    }
+  }, []);
 
   if (!product) return null;
   const total = finalUnitPrice * quantity;
@@ -106,6 +138,7 @@ export default function OrderForm() {
       total: finalUnitPrice * quantity,
       currency: product.currency,
       notes,
+      website: (fd.get("website") || "").toString(), // honeypot, see route.js
     };
 
     setSubmitting(true);
@@ -124,12 +157,31 @@ export default function OrderForm() {
       if (!res.ok || data.ok === false) {
         throw new Error(data.error || "Server returned an error.");
       }
-      form.reset();
+      const total = data.total ?? payload.total;
+      if (!data.duplicate) {
+        trackEvent("Purchase", "purchase", {
+          value: total,
+          currency: payload.currency,
+          content_ids: [product.slug],
+          content_name: product.shortName,
+          num_items: quantity,
+          order_id: data.orderId,
+        });
+      }
+      saveCustomer({ name, phone, email, address });
+      setOrder({
+        orderId: data.orderId,
+        productName: product.shortName,
+        options: selectedSummary.map((s) => s.valueName),
+        quantity,
+        total: `${sym}${formatBDT(total)}`,
+        name,
+      });
       setQuantity(1);
-      setSuccess(true);
+      form.elements.notes.value = "";
     } catch (err) {
       setError(
-        "Something went wrong: " + err.message + " — please try again or call us directly."
+        "Something went wrong: " + err.message + " — please try again or message us on WhatsApp."
       );
     } finally {
       setSubmitting(false);
@@ -146,7 +198,13 @@ export default function OrderForm() {
 
         <div className="order-grid">
           <div className="form-card">
-            <form onSubmit={handleSubmit} noValidate>
+            <form onSubmit={handleSubmit} noValidate ref={formRef}>
+              {/* Honeypot: hidden from people and screen readers; bots fill it in. */}
+              <div className="hp-field" aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+              </div>
+
               <div className="field">
                 <label htmlFor="name">
                   Full Name <span className="req">*</span>
@@ -293,9 +351,9 @@ export default function OrderForm() {
       </div>
 
       <SuccessModal
-        open={success}
+        order={order}
         onClose={() => {
-          setSuccess(false);
+          setOrder(null);
           router.push("/");
           window.scrollTo({ top: 0 });
         }}

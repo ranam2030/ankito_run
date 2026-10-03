@@ -385,12 +385,37 @@ h1 {
   line-height: 1.3;
 }
 
-.product-card-cta {
-  display: inline-block;
-  margin-top: 14px;
-  background: var(--ink);
-  font-size: 14px;
-  padding: 10px 18px;
+.product-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-card-link .product-card-body {
+  padding-bottom: 0;
+}
+
+.product-card-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+
+.product-card-actions .btn {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  padding: 12px 16px;
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+
+.btn-outline:hover {
+  background: var(--soft);
 }
 
 @media (max-width: 800px) {
@@ -832,6 +857,139 @@ footer {
 footer a {
   color: #fff;
   text-decoration: none;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  margin-bottom: 12px;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-links {
+  align-items: center;
+}
+
+.footer-links .footer-icon {
+  display: inline-flex;
+  color: #25d366;
+  transition: transform 0.15s ease;
+}
+
+.footer-links .footer-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Order form honeypot — kept off-screen rather than display:none, which some bots skip */
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Success modal extras */
+.modal .order-id {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.modal .btn {
+  display: block;
+  width: 100%;
+}
+
+.modal .btn + .btn {
+  margin-top: 10px;
+}
+
+.btn-whatsapp {
+  background: #25d366;
+}
+
+.btn-whatsapp:hover {
+  background: #1ebe5b;
+}
+
+/* Floating WhatsApp chat button */
+.whatsapp-float {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.06);
+}
+
+/* Sticky order bar — phones only, on product pages */
+.mobile-order-bar {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .mobile-order-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease;
+  }
+  .mobile-order-bar.hidden {
+    transform: translateY(110%);
+  }
+  .mobile-order-bar .btn {
+    padding: 12px 22px;
+  }
+  .mobile-order-price {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .mobile-order-note {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  /* Keep the page end and the WhatsApp button clear of the bar */
+  body:has(.mobile-order-bar) footer {
+    padding-bottom: 96px;
+  }
+  body:has(.mobile-order-bar:not(.hidden)) .whatsapp-float {
+    bottom: 88px;
+  }
+  .whatsapp-float {
+    transition: transform 0.15s ease, bottom 0.2s ease;
+  }
 }
 
 @media (max-width: 800px) {

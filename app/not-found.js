@@ -2,22 +2,18 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ProductCard from "./components/ProductCard";
 import { PRODUCTS } from "./products";
-import { SITE } from "./site";
 
-export const metadata = {
-  title: { absolute: `${SITE.name} — ${SITE.tagline}` },
-  alternates: { canonical: "/" },
-};
+export const metadata = { title: "Page not found" };
 
-export default function HomePage() {
+export default function NotFound() {
   return (
     <>
       <Header pickProduct />
 
       <div className="container">
         <section className="home-hero">
-          <h1 className="home-title">Handcrafted goods, naturally made</h1>
-          <p className="home-sub">Pick a product to view details and place an order.</p>
+          <h1 className="home-title">Sorry, we couldn&rsquo;t find that page</h1>
+          <p className="home-sub">It may have moved. Here&rsquo;s what we have in store:</p>
         </section>
 
         <div className="product-grid">

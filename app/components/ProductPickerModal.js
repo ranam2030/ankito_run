@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { PRODUCTS, formatBDT } from "../products";
 import OptionPicker from "./OptionPicker";
 import { SelectionProvider, useSelection } from "./SelectionContext";
+import { trackEvent } from "../analytics";
 
 // Confirm button lives inside the SelectionProvider so it can read the
 // chosen options and carry them to the product page's order form.
@@ -15,6 +16,11 @@ function ConfirmOrder({ onDone }) {
 
   function confirm() {
     const params = new URLSearchParams(selections).toString();
+    trackEvent("InitiateCheckout", "begin_checkout", {
+      value: finalUnitPrice,
+      currency: product.currency,
+      content_ids: [product.slug],
+    });
     onDone();
     router.push(`/products/${product.slug}${params ? `?${params}` : ""}#order`);
   }
@@ -66,7 +72,7 @@ export default function ProductPickerModal({ open, onClose }) {
           ×
         </button>
         <h3 id="picker-title">Select a product</h3>
-        <p>Choose what you'd like to order. You'll add delivery details next.</p>
+        <p>Choose what you&rsquo;d like to order. You&rsquo;ll add delivery details next.</p>
 
         <div className="picker-list" role="radiogroup" aria-label="Products">
           {PRODUCTS.map((p) => {

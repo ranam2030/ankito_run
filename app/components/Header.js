@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import OrderNowButton from "./OrderNowButton";
 
 // pickProduct: on pages without an order form (the homepage), "Order Now"
@@ -7,7 +8,7 @@ export default function Header({ pickProduct = false }) {
   return (
     <header>
       <div className="container nav">
-        <a href="/" className="logo" aria-label="Ankito home">
+        <Link href="/" className="logo" aria-label="Ankito home">
           <Image
             src="/images/logo.jpg"
             alt="Ankito"
@@ -16,7 +17,7 @@ export default function Header({ pickProduct = false }) {
             priority
             style={{ height: 44, width: "auto" }}
           />
-        </a>
+        </Link>
         {pickProduct ? (
           <OrderNowButton />
         ) : (
