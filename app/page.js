@@ -6,7 +6,7 @@ import { PRODUCTS } from "./products";
 export default function HomePage() {
   return (
     <>
-      <Header />
+      <Header pickProduct />
 
       <div className="container">
         <section className="home-hero">

@@ -1,6 +1,9 @@
 import Image from "next/image";
+import OrderNowButton from "./OrderNowButton";
 
-export default function Header() {
+// pickProduct: on pages without an order form (the homepage), "Order Now"
+// opens a product picker instead of jumping to #order.
+export default function Header({ pickProduct = false }) {
   return (
     <header>
       <div className="container nav">
@@ -14,9 +17,13 @@ export default function Header() {
             style={{ height: 44, width: "auto" }}
           />
         </a>
-        <a href="#order" className="cta">
-          Order Now
-        </a>
+        {pickProduct ? (
+          <OrderNowButton />
+        ) : (
+          <a href="#order" className="cta">
+            Order Now
+          </a>
+        )}
       </div>
     </header>
   );

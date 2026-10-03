@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const SelectionContext = createContext(null);
 
@@ -13,13 +13,26 @@ const SelectionContext = createContext(null);
  *     <OrderForm />
  *   </SelectionProvider>
  */
-export function SelectionProvider({ product, children }) {
+export function SelectionProvider({ product, fromUrl = false, children }) {
   const initial = {};
   for (const opt of product?.options || []) {
     initial[opt.id] = opt.values?.[0]?.id;
   }
 
   const [selections, setSelections] = useState(initial);
+
+  // With fromUrl, preselect options passed as query params (e.g. ?color=walnut,
+  // set by the homepage product picker). Unknown options/values are ignored.
+  useEffect(() => {
+    if (!fromUrl) return;
+    const params = new URLSearchParams(window.location.search);
+    const fromParams = {};
+    for (const opt of product?.options || []) {
+      const v = params.get(opt.id);
+      if (v && opt.values?.some((x) => x.id === v)) fromParams[opt.id] = v;
+    }
+    if (Object.keys(fromParams).length) setSelections((s) => ({ ...s, ...fromParams }));
+  }, [fromUrl, product]);
 
   function setSelection(optionId, valueId) {
     setSelections((s) => ({ ...s, [optionId]: valueId }));

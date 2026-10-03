@@ -75,7 +75,11 @@ header {
   display: block;
 }
 
-.nav a.cta {
+.nav .cta {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: inherit;
   background: var(--accent);
   color: #fff;
   padding: 8px 16px;
@@ -85,7 +89,7 @@ header {
   font-size: 14px;
 }
 
-.nav a.cta:hover {
+.nav .cta:hover {
   background: var(--accent-hover);
 }
 
@@ -566,6 +570,21 @@ section h2 {
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
 }
 
+.field [aria-invalid="true"] {
+  border-color: #dc2626;
+}
+
+.field [aria-invalid="true"]:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.field-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
 .field textarea {
   resize: vertical;
   min-height: 80px;
@@ -698,6 +717,108 @@ section h2 {
 .modal p {
   color: var(--muted);
   margin: 0 0 20px;
+}
+
+/* Homepage product picker modal */
+.picker-modal {
+  position: relative;
+  max-width: 480px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  text-align: left;
+  outline: 0;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: var(--soft);
+  color: var(--ink);
+}
+
+.picker-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 10px;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.picker-item:hover {
+  border-color: #d6d3d1;
+}
+
+.picker-item.selected {
+  border-color: var(--accent);
+  background: #fff7ed;
+}
+
+.picker-thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--soft);
+}
+
+.picker-thumb img {
+  object-fit: cover;
+}
+
+.picker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.picker-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.picker-price {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.picker-price s {
+  margin-left: 8px;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.picker-options .option-picker:last-child {
+  margin-bottom: 24px;
 }
 
 footer {

@@ -27,7 +27,7 @@ export default function ProductPage({ params }) {
   if (!product) notFound();
 
   return (
-    <SelectionProvider product={product}>
+    <SelectionProvider product={product} fromUrl>
       <Header />
 
       <div className="container">

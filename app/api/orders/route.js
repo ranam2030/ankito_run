@@ -3,6 +3,8 @@
 // never exposed to the browser. This also lets us return a real success/error
 // JSON response instead of relying on no-cors mode.
 
+import { normalizeBDPhone, validateOrder } from "../../validation";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -22,20 +24,22 @@ export async function POST(request) {
     return Response.json({ ok: false, error: "Invalid JSON body." }, { status: 400 });
   }
 
-  // Light validation
-  const required = ["name", "phone", "address", "quantity"];
-  for (const k of required) {
-    if (payload[k] === undefined || payload[k] === null || payload[k] === "") {
-      return Response.json(
-        { ok: false, error: `Missing required field: ${k}` },
-        { status: 400 }
-      );
-    }
+  const fieldErrors = validateOrder(payload);
+  if (Object.keys(fieldErrors).length > 0) {
+    return Response.json(
+      { ok: false, error: "Invalid order details.", fieldErrors },
+      { status: 400 }
+    );
+  }
+  const quantity = Number(payload.quantity);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
+    return Response.json({ ok: false, error: "Invalid quantity." }, { status: 400 });
   }
 
   // Stamp timestamp on the server too — trust this over client clock.
   const enriched = {
     ...payload,
+    phone: normalizeBDPhone(payload.phone),
     timestamp: new Date().toISOString(),
   };
 

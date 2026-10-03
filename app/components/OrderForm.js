@@ -1,19 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatBDT } from "../products";
 import SuccessModal from "./SuccessModal";
 import { useSelection } from "./SelectionContext";
+import { normalizeBDPhone, validateOrder } from "../validation";
 
 const MAX_QTY = 10;
+const FIELD_ORDER = ["name", "phone", "email", "address", "notes"];
+
+function FieldError({ id, message }) {
+  if (!message) return null;
+  return (
+    <p className="field-error" id={`${id}-error`} role="alert">
+      {message}
+    </p>
+  );
+}
 
 export default function OrderForm() {
   const { product, finalUnitPrice, selectedSummary } = useSelection();
+  const router = useRouter();
 
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   if (!product) return null;
   const total = finalUnitPrice * quantity;
@@ -30,23 +44,51 @@ export default function OrderForm() {
     setQuantity(v);
   }
 
+  // Validate a single field when the user leaves it (skip untouched empty fields).
+  function onFieldBlur(e) {
+    const { name, value } = e.target;
+    if (!value.trim() && !fieldErrors[name]) return;
+    const values = Object.fromEntries(new FormData(e.target.form));
+    const message = validateOrder(values)[name];
+    setFieldErrors((prev) => ({ ...prev, [name]: message }));
+  }
+
+  // Clear a field's error as soon as the user starts correcting it.
+  function onFieldInput(e) {
+    const { name } = e.target;
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (error) setError("");
+  }
+
+  function fieldProps(name) {
+    return {
+      id: name,
+      name,
+      onBlur: onFieldBlur,
+      onInput: onFieldInput,
+      "aria-invalid": fieldErrors[name] ? true : undefined,
+      "aria-describedby": fieldErrors[name] ? `${name}-error` : undefined,
+    };
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const name = (fd.get("name") || "").toString().trim();
     const phone = (fd.get("phone") || "").toString().trim();
     const address = (fd.get("address") || "").toString().trim();
     const email = (fd.get("email") || "").toString().trim();
     const notes = (fd.get("notes") || "").toString().trim();
 
-    if (!name || !phone || !address) {
-      setError("Please fill in name, phone and address.");
-      return;
-    }
-    if (!/^[0-9+\-\s]{7,}$/.test(phone)) {
-      setError("Please enter a valid phone number.");
+    const errors = validateOrder({ name, phone, email, address, notes });
+    setFieldErrors(errors);
+    const firstInvalid = FIELD_ORDER.find((f) => errors[f]);
+    if (firstInvalid) {
+      setError("Please correct the highlighted fields.");
+      form.elements[firstInvalid]?.focus();
       return;
     }
 
@@ -56,7 +98,7 @@ export default function OrderForm() {
       productSlug: product.slug,
       options: selectedSummary,
       name,
-      phone,
+      phone: normalizeBDPhone(phone),
       email,
       address,
       quantity,
@@ -74,10 +116,15 @@ export default function OrderForm() {
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
+      if (data.fieldErrors) {
+        setFieldErrors(data.fieldErrors);
+        setError("Please correct the highlighted fields.");
+        return;
+      }
       if (!res.ok || data.ok === false) {
         throw new Error(data.error || "Server returned an error.");
       }
-      e.target.reset();
+      form.reset();
       setQuantity(1);
       setSuccess(true);
     } catch (err) {
@@ -104,7 +151,8 @@ export default function OrderForm() {
                 <label htmlFor="name">
                   Full Name <span className="req">*</span>
                 </label>
-                <input type="text" id="name" name="name" required autoComplete="name" />
+                <input type="text" {...fieldProps("name")} required autoComplete="name" />
+                <FieldError id="name" message={fieldErrors.name} />
               </div>
 
               <div className="row-2">
@@ -114,22 +162,23 @@ export default function OrderForm() {
                   </label>
                   <input
                     type="tel"
-                    id="phone"
-                    name="phone"
+                    {...fieldProps("phone")}
                     required
+                    inputMode="tel"
                     autoComplete="tel"
                     placeholder="01XXXXXXXXX"
                   />
+                  <FieldError id="phone" message={fieldErrors.phone} />
                 </div>
                 <div className="field">
                   <label htmlFor="email">Email</label>
                   <input
                     type="email"
-                    id="email"
-                    name="email"
+                    {...fieldProps("email")}
                     autoComplete="email"
                     placeholder="optional"
                   />
+                  <FieldError id="email" message={fieldErrors.email} />
                 </div>
               </div>
 
@@ -138,12 +187,12 @@ export default function OrderForm() {
                   Delivery Address <span className="req">*</span>
                 </label>
                 <textarea
-                  id="address"
-                  name="address"
+                  {...fieldProps("address")}
                   required
                   autoComplete="street-address"
                   placeholder="House/Road, Area, City, District"
                 />
+                <FieldError id="address" message={fieldErrors.address} />
               </div>
 
               <div className="field">
@@ -176,10 +225,10 @@ export default function OrderForm() {
               <div className="field">
                 <label htmlFor="notes">Notes (optional)</label>
                 <textarea
-                  id="notes"
-                  name="notes"
+                  {...fieldProps("notes")}
                   placeholder="Any delivery instructions or preferred time"
                 />
+                <FieldError id="notes" message={fieldErrors.notes} />
               </div>
 
               <button type="submit" className="btn full" disabled={submitting}>
@@ -243,7 +292,14 @@ export default function OrderForm() {
         </div>
       </div>
 
-      <SuccessModal open={success} onClose={() => setSuccess(false)} />
+      <SuccessModal
+        open={success}
+        onClose={() => {
+          setSuccess(false);
+          router.push("/");
+          window.scrollTo({ top: 0 });
+        }}
+      />
     </section>
   );
 }
