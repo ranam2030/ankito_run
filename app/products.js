@@ -19,7 +19,7 @@ export const PRODUCTS = [
     subtitle:
       "Handcrafted from solid wood with a polished brass bell. Mount it on any door — every time the door swings, it produces a clear, soothing ring. No batteries, no wires.",
     badge: "Best Seller",
-    price: 299,
+    price: 349,
     oldPrice: 399,
     currency: "BDT",
     currencySymbol: "৳",
