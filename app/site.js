@@ -20,7 +20,7 @@ export const SITE = {
   messengerUrl: env(process.env.NEXT_PUBLIC_MESSENGER_URL), // e.g. https://m.me/yourpage
 
   // Restricted to their known character sets since they are inlined into scripts.
-  fbPixelId: env(process.env.NEXT_PUBLIC_FB_PIXEL_ID).replace(/\D/g, ""),
+  fbPixelId: (env(process.env.NEXT_PUBLIC_FB_PIXEL_ID) || "2431461353802429").replace(/\D/g, ""),
   gaId: env(process.env.NEXT_PUBLIC_GA_ID).replace(/[^A-Za-z0-9-]/g, ""), // e.g. G-XXXXXXXXXX
 };
 
