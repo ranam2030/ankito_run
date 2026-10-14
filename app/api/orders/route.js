@@ -127,8 +127,17 @@ export async function POST(request) {
 
   const orderId = makeOrderId(now);
   const { website, ...clean } = payload;
+  // Flatten options for the sheet: { color: "Natural Beech", Color: "Natural Beech" }
+  // so the Apps Script can fill a column by option id or by its label.
+  const flatOptions = {};
+  for (const o of priced.options) {
+    flatOptions[o.optionId] = o.valueName;
+    flatOptions[o.optionLabel] = o.valueName;
+  }
   const enriched = {
     ...clean,
+    ...flatOptions,
+    optionsText: priced.options.map((o) => `${o.optionLabel}: ${o.valueName}`).join(", "),
     orderId,
     product: product.fullProductString,
     productSlug: product.slug,

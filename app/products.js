@@ -5,6 +5,7 @@
 //   options[]         — variant groups; each has type "swatch" or "choice"
 //   options[].values  — the choices in that group; first value is the default
 //   value.priceAdjust — optional, +/- BDT applied to unit price when picked
+//   value.images      — optional, replaces the gallery images while picked
 //
 // To add a new product, append to PRODUCTS. To add a new variant group on
 // any product, append to its options[]. UI updates automatically.
@@ -65,7 +66,17 @@ export const PRODUCTS = [
         label: "Color",
         type: "swatch",
         values: [
-          { id: "natural", name: "Natural Beech", hex: "#d2a96e" },
+          {
+            id: "natural",
+            name: "Natural Beech",
+            hex: "#d2a96e",
+            images: [
+              { src: "/images/product-natural-beech.jpg", alt: "Natural beech door bell mounted on a stone wall" },
+              { src: "/images/product-1.png",  alt: "Front view of wooden magnetic door bell" },
+              { src: "/images/product-2.jpg",  alt: "Features overview infographic" },
+              { src: "/images/product-3.webp", alt: "Door bell on a wooden surface" },
+            ],
+          },
           { id: "walnut",  name: "Dark Walnut",  hex: "#5a3825" },
         ],
       },

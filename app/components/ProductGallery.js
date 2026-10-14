@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useSelection } from "./SelectionContext";
 
 export default function ProductGallery({ product }) {
-  const images = product?.images || [];
+  const { selections } = useSelection();
+  // A selected option value with its own images (e.g. a color) overrides the
+  // product's default gallery.
+  const override = (product?.options || [])
+    .map((opt) => opt.values?.find((v) => v.id === selections[opt.id]))
+    .find((v) => v?.images?.length);
+  const images = override?.images || product?.images || [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
 
+  // Show the first image of the new set whenever the selection swaps it.
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [override]);
+
   if (images.length === 0) return null;
-  const active = images[activeIndex];
+  const active = images[activeIndex] || images[0];
 
   function selectImage(i) {
     if (i === activeIndex) return;
