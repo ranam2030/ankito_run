@@ -26,6 +26,7 @@ export const PRODUCTS = [
     currencySymbol: "৳",
 
     images: [
+      { src: "/images/product-cover.png", alt: "Wooden door bell with brass chime — features and uses" },
       { src: "/images/product-1.png",  alt: "Front view of wooden magnetic door bell" },
       { src: "/images/product-2.jpg",  alt: "Features overview infographic" },
       { src: "/images/product-3.webp", alt: "Door bell on a wooden surface" },
