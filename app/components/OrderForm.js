@@ -6,7 +6,15 @@ import { formatBDT } from "../products";
 import SuccessModal from "./SuccessModal";
 import { useSelection } from "./SelectionContext";
 import { normalizeBDPhone, validateOrder } from "../validation";
-import { DISTRICTS, ZONE_LABEL, deliveryCharge, deliveryZone, getDistrict, getThana } from "../locations";
+import {
+  DISTRICTS,
+  ZONE_LABEL,
+  deliveryCharge,
+  deliveryZone,
+  formatFullAddress,
+  getDistrict,
+  getThana,
+} from "../locations";
 import { trackEvent } from "../analytics";
 
 const MAX_QTY = 10;
@@ -57,6 +65,15 @@ function ThanaOptions({ district, sym }) {
   );
 }
 
+function PinIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  );
+}
+
 function FieldError({ id, message }) {
   if (!message) return null;
   return (
@@ -77,6 +94,8 @@ export default function OrderForm() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [district, setDistrict] = useState("");
   const [thana, setThana] = useState("");
+  // Live copies of the typed contact fields, for the "Delivering to" preview.
+  const [live, setLive] = useState({ name: "", phone: "", address: "" });
   const formRef = useRef(null);
 
   // Pre-fill contact details saved from a previous order on this device.
@@ -84,9 +103,14 @@ export default function OrderForm() {
     const saved = loadSavedCustomer();
     const form = formRef.current;
     if (!saved || !form) return;
+    const filled = {};
     for (const f of TEXT_FIELDS) {
-      if (saved[f] && form.elements[f] && !form.elements[f].value) form.elements[f].value = saved[f];
+      if (saved[f] && form.elements[f] && !form.elements[f].value) {
+        form.elements[f].value = saved[f];
+        filled[f] = saved[f];
+      }
     }
+    setLive((prev) => ({ ...prev, ...filled }));
     if (getDistrict(saved.district)) {
       setDistrict(saved.district);
       if (getThana(saved.district, saved.thana)) setThana(saved.thana);
@@ -100,6 +124,10 @@ export default function OrderForm() {
   const shipping = deliveryCharge(district, thana); // null until district/thana decide it
   const total = subtotal + (shipping || 0);
   const districtData = getDistrict(district);
+  const fullAddress = formatFullAddress(live.address, district, thana);
+  const areaText = `${district} - ${thana}`;
+  const showAddressPreview = Boolean(districtData && thana && live.address.trim());
+  const previewContact = [live.name.trim(), normalizeBDPhone(live.phone)].filter(Boolean).join(" · ");
 
   function changeQty(delta) {
     setQuantity((q) => Math.max(1, Math.min(MAX_QTY, q + delta)));
@@ -136,7 +164,8 @@ export default function OrderForm() {
 
   // Clear a field's error as soon as the user starts correcting it.
   function onFieldInput(e) {
-    const { name } = e.target;
+    const { name, value } = e.target;
+    if (name in live) setLive((prev) => ({ ...prev, [name]: value }));
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     if (error) setError("");
   }
@@ -229,6 +258,7 @@ export default function OrderForm() {
         quantity,
         total: `${sym}${formatBDT(total)}`,
         name,
+        address: formatFullAddress(address, district, thana),
       });
       setQuantity(1);
       form.elements.notes.value = "";
@@ -333,7 +363,7 @@ export default function OrderForm() {
                 </div>
               </div>
 
-              {zone && (
+              {zone && !showAddressPreview && (
                 <p className="delivery-hint">
                   Delivery charge ({ZONE_LABEL[zone]}): <strong>{sym}{formatBDT(shipping)}</strong>
                 </p>
@@ -350,6 +380,23 @@ export default function OrderForm() {
                   placeholder="House no., road, area or village"
                 />
                 <FieldError id="address" message={fieldErrors.address} />
+                {showAddressPreview && (
+                  <div className="address-preview" aria-live="polite">
+                    <div className="address-preview-head">
+                      <PinIcon />
+                      Delivering to
+                    </div>
+                    {previewContact && <div className="address-preview-contact">{previewContact}</div>}
+                    <p className="address-preview-text">
+                      {fullAddress.slice(0, -areaText.length)}
+                      <strong>{areaText}</strong>
+                    </p>
+                    <div className="address-preview-meta">
+                      {ZONE_LABEL[zone]} · Delivery charge {sym}
+                      {formatBDT(shipping)} · Please check before confirming
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="field">

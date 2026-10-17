@@ -5,7 +5,7 @@
 
 import { normalizeBDPhone, validateOrder } from "../../validation";
 import { getProduct } from "../../products";
-import { ZONE_LABEL, deliveryCharge, deliveryZone } from "../../locations";
+import { ZONE_LABEL, deliveryCharge, deliveryZone, formatFullAddress } from "../../locations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -158,7 +158,7 @@ export async function POST(request) {
     district,
     thana,
     // Full address in one field so the sheet's address column has everything.
-    address: `${String(payload.address).trim()}, ${thana}, ${district}`,
+    address: formatFullAddress(payload.address, district, thana),
     quantity,
     unitPrice: priced.unitPrice,
     subtotal: priced.subtotal,

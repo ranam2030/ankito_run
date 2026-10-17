@@ -16,7 +16,6 @@ const DHAKA_CITY_THANAS = [
   ["Banani", "বনানী"],
   ["Bangshal", "বংশাল"],
   ["Bhashantek", "ভাসানটেক"],
-  ["Bhatara", "ভাটারা"],
   ["Biman Bandar (Airport)", "বিমানবন্দর"],
   ["Cantonment", "ক্যান্টনমেন্ট"],
   ["Chawkbazar", "চকবাজার"],
@@ -60,6 +59,7 @@ const DHAKA_CITY_THANAS = [
   ["Uttar Khan", "উত্তরখান"],
   ["Uttara East", "উত্তরা পূর্ব"],
   ["Uttara West", "উত্তরা পশ্চিম"],
+  ["Vatara", "ভাটারা"],
   ["Wari", "ওয়ারী"],
 ];
 
@@ -722,6 +722,17 @@ export function deliveryZone(districtName, thanaName) {
   const thana = getThana(districtName, thanaName);
   if (!thana) return null;
   return thana.inside ? "inside" : "outside";
+}
+
+// One-line delivery address, e.g. "House 104, Road-6, Bashundhara R/A, Dhaka - Vatara".
+// Used for the customer's preview and for what is sent to the sheet, so both match.
+export function formatFullAddress(address, districtName, thanaName) {
+  const street = String(address || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\s,.;-]+$/, "");
+  const area = [districtName, thanaName].filter(Boolean).join(" - ");
+  return [street, area].filter(Boolean).join(", ");
 }
 
 export function deliveryCharge(districtName, thanaName) {

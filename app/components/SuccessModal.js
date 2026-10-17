@@ -11,6 +11,7 @@ function confirmMessage(order) {
     `Item: ${item} × ${order.quantity}`,
     `Total: ${order.total}`,
     `Name: ${order.name}`,
+    order.address && `Address: ${order.address}`,
     `Please confirm my order.`,
   ]
     .filter(Boolean)

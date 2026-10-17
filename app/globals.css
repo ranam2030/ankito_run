@@ -1272,6 +1272,65 @@ button.gallery-open {
   font-size: 14px;
 }
 
+.address-preview {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-tint);
+  border: 1px solid #ecd6b3;
+  border-left: 4px solid var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .address-preview {
+    animation: address-preview-in 0.2s ease;
+  }
+}
+
+@keyframes address-preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.address-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #7a4f1f;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.address-preview-contact {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.address-preview-text {
+  margin: 2px 0 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.address-preview-text strong {
+  color: var(--brand-deep);
+}
+
+.address-preview-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .summary-zone {
   color: var(--muted);
   font-size: 13px;
