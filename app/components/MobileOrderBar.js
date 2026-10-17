@@ -26,7 +26,7 @@ export default function MobileOrderBar() {
           {product.currencySymbol}
           {formatBDT(finalUnitPrice)}
         </div>
-        <div className="mobile-order-note">Free delivery · Cash on Delivery</div>
+        <div className="mobile-order-note">Cash on Delivery · ৳60 delivery in Dhaka</div>
       </div>
       <a href="#order" className="btn" tabIndex={formVisible ? -1 : 0}>
         Order Now

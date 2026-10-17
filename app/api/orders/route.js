@@ -5,6 +5,7 @@
 
 import { normalizeBDPhone, validateOrder } from "../../validation";
 import { getProduct } from "../../products";
+import { ZONE_LABEL, deliveryCharge, deliveryZone } from "../../locations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,9 +49,9 @@ function makeOrderId(now) {
   return `ANK-${ymd}-${rand}`;
 }
 
-// Rebuild options and prices from the catalogue so a tampered request
-// can't change what the customer is charged.
-function priceOrder(product, requestedOptions, quantity) {
+// Rebuild options, prices and the delivery charge from the catalogue so a
+// tampered request can't change what the customer is charged.
+function priceOrder(product, requestedOptions, quantity, district, thana) {
   const requested = {};
   for (const o of Array.isArray(requestedOptions) ? requestedOptions : []) {
     if (o && o.optionId) requested[o.optionId] = o.valueId;
@@ -63,7 +64,16 @@ function priceOrder(product, requestedOptions, quantity) {
     unitPrice += v.priceAdjust || 0;
     options.push({ optionId: opt.id, optionLabel: opt.label, valueId: v.id, valueName: v.name });
   }
-  return { unitPrice, total: unitPrice * quantity, options };
+  const subtotal = unitPrice * quantity;
+  const shipping = deliveryCharge(district, thana);
+  return {
+    unitPrice,
+    subtotal,
+    deliveryCharge: shipping,
+    deliveryZone: ZONE_LABEL[deliveryZone(district, thana)],
+    total: subtotal + shipping,
+    options,
+  };
 }
 
 export async function POST(request) {
@@ -107,7 +117,9 @@ export async function POST(request) {
   const now = Date.now();
   prune(now);
   const phone = normalizeBDPhone(payload.phone);
-  const priced = priceOrder(product, payload.options, quantity);
+  const district = String(payload.district).trim();
+  const thana = String(payload.thana).trim();
+  const priced = priceOrder(product, payload.options, quantity, district, thana);
 
   // Same order resubmitted (double tap, refresh): return the original order.
   const dupKey = [phone, product.slug, priced.options.map((o) => o.valueId).join(","), quantity].join("|");
@@ -143,8 +155,15 @@ export async function POST(request) {
     productSlug: product.slug,
     options: priced.options,
     phone,
+    district,
+    thana,
+    // Full address in one field so the sheet's address column has everything.
+    address: `${String(payload.address).trim()}, ${thana}, ${district}`,
     quantity,
     unitPrice: priced.unitPrice,
+    subtotal: priced.subtotal,
+    deliveryCharge: priced.deliveryCharge,
+    deliveryZone: priced.deliveryZone,
     total: priced.total,
     currency: product.currency,
     // Stamp timestamp on the server too — trust this over client clock.

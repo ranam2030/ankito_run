@@ -6,13 +6,15 @@ import { formatBDT } from "../products";
 import SuccessModal from "./SuccessModal";
 import { useSelection } from "./SelectionContext";
 import { normalizeBDPhone, validateOrder } from "../validation";
+import { DISTRICTS, ZONE_LABEL, deliveryCharge, deliveryZone, getDistrict, getThana } from "../locations";
 import { trackEvent } from "../analytics";
 
 const MAX_QTY = 10;
-const FIELD_ORDER = ["name", "phone", "email", "address", "notes"];
+const FIELD_ORDER = ["name", "phone", "email", "district", "thana", "address", "notes"];
 // Contact fields remembered on this device for returning customers.
 const SAVED_KEY = "ankito:customer";
-const SAVED_FIELDS = ["name", "phone", "email", "address"];
+const TEXT_FIELDS = ["name", "phone", "email", "address"];
+const SAVED_FIELDS = [...TEXT_FIELDS, "district", "thana"];
 
 function loadSavedCustomer() {
   try {
@@ -29,6 +31,30 @@ function saveCustomer(values) {
   } catch {
     // Storage unavailable (private mode etc.) — nothing to remember.
   }
+}
+
+// Thana options; Dhaka's are split into the city (inside Dhaka) and outer upazilas.
+function ThanaOptions({ district, sym }) {
+  if (!district) return null;
+  const options = (list) =>
+    list.map((t) => (
+      <option key={t.name} value={t.name}>
+        {t.name} ({t.bn})
+      </option>
+    ));
+  const inside = district.thanas.filter((t) => t.inside);
+  if (inside.length === 0) return options(district.thanas);
+  const outside = district.thanas.filter((t) => !t.inside);
+  return (
+    <>
+      <optgroup label={`Dhaka City — ${sym}${deliveryCharge(district.name, inside[0].name)} delivery`}>
+        {options(inside)}
+      </optgroup>
+      <optgroup label={`Outside Dhaka City — ${sym}${deliveryCharge(district.name, outside[0].name)} delivery`}>
+        {options(outside)}
+      </optgroup>
+    </>
+  );
 }
 
 function FieldError({ id, message }) {
@@ -49,6 +75,8 @@ export default function OrderForm() {
   const [error, setError] = useState("");
   const [order, setOrder] = useState(null); // set after a successful order
   const [fieldErrors, setFieldErrors] = useState({});
+  const [district, setDistrict] = useState("");
+  const [thana, setThana] = useState("");
   const formRef = useRef(null);
 
   // Pre-fill contact details saved from a previous order on this device.
@@ -56,14 +84,22 @@ export default function OrderForm() {
     const saved = loadSavedCustomer();
     const form = formRef.current;
     if (!saved || !form) return;
-    for (const f of SAVED_FIELDS) {
+    for (const f of TEXT_FIELDS) {
       if (saved[f] && form.elements[f] && !form.elements[f].value) form.elements[f].value = saved[f];
+    }
+    if (getDistrict(saved.district)) {
+      setDistrict(saved.district);
+      if (getThana(saved.district, saved.thana)) setThana(saved.thana);
     }
   }, []);
 
   if (!product) return null;
-  const total = finalUnitPrice * quantity;
   const sym = product.currencySymbol;
+  const subtotal = finalUnitPrice * quantity;
+  const zone = deliveryZone(district, thana);
+  const shipping = deliveryCharge(district, thana); // null until district/thana decide it
+  const total = subtotal + (shipping || 0);
+  const districtData = getDistrict(district);
 
   function changeQty(delta) {
     setQuantity((q) => Math.max(1, Math.min(MAX_QTY, q + delta)));
@@ -83,6 +119,19 @@ export default function OrderForm() {
     const values = Object.fromEntries(new FormData(e.target.form));
     const message = validateOrder(values)[name];
     setFieldErrors((prev) => ({ ...prev, [name]: message }));
+  }
+
+  function onDistrictChange(e) {
+    setDistrict(e.target.value);
+    setThana("");
+    setFieldErrors((prev) => ({ ...prev, district: undefined, thana: undefined }));
+    if (error) setError("");
+  }
+
+  function onThanaChange(e) {
+    setThana(e.target.value);
+    setFieldErrors((prev) => ({ ...prev, thana: undefined }));
+    if (error) setError("");
   }
 
   // Clear a field's error as soon as the user starts correcting it.
@@ -115,7 +164,7 @@ export default function OrderForm() {
     const email = (fd.get("email") || "").toString().trim();
     const notes = (fd.get("notes") || "").toString().trim();
 
-    const errors = validateOrder({ name, phone, email, address, notes });
+    const errors = validateOrder({ name, phone, email, district, thana, address, notes });
     setFieldErrors(errors);
     const firstInvalid = FIELD_ORDER.find((f) => errors[f]);
     if (firstInvalid) {
@@ -132,10 +181,14 @@ export default function OrderForm() {
       name,
       phone: normalizeBDPhone(phone),
       email,
+      district,
+      thana,
       address,
       quantity,
       unitPrice: finalUnitPrice,
-      total: finalUnitPrice * quantity,
+      subtotal,
+      deliveryCharge: shipping,
+      total,
       currency: product.currency,
       notes,
       website: (fd.get("website") || "").toString(), // honeypot, see route.js
@@ -168,7 +221,7 @@ export default function OrderForm() {
           order_id: data.orderId,
         });
       }
-      saveCustomer({ name, phone, email, address });
+      saveCustomer({ name, phone, email, address, district, thana });
       setOrder({
         orderId: data.orderId,
         productName: product.shortName,
@@ -240,15 +293,61 @@ export default function OrderForm() {
                 </div>
               </div>
 
+              <div className="row-2">
+                <div className="field">
+                  <label htmlFor="district">
+                    District <span className="req">*</span>
+                  </label>
+                  <select
+                    {...fieldProps("district")}
+                    value={district}
+                    onChange={onDistrictChange}
+                    required
+                    autoComplete="address-level2"
+                  >
+                    <option value="">Select district</option>
+                    {DISTRICTS.map((d) => (
+                      <option key={d.name} value={d.name}>
+                        {d.name} ({d.bn})
+                      </option>
+                    ))}
+                  </select>
+                  <FieldError id="district" message={fieldErrors.district} />
+                </div>
+                <div className="field">
+                  <label htmlFor="thana">
+                    Thana / Upazila <span className="req">*</span>
+                  </label>
+                  <select
+                    {...fieldProps("thana")}
+                    value={thana}
+                    onChange={onThanaChange}
+                    required
+                    disabled={!districtData}
+                    autoComplete="address-level3"
+                  >
+                    <option value="">{districtData ? "Select thana" : "Select district first"}</option>
+                    <ThanaOptions district={districtData} sym={sym} />
+                  </select>
+                  <FieldError id="thana" message={fieldErrors.thana} />
+                </div>
+              </div>
+
+              {zone && (
+                <p className="delivery-hint">
+                  Delivery charge ({ZONE_LABEL[zone]}): <strong>{sym}{formatBDT(shipping)}</strong>
+                </p>
+              )}
+
               <div className="field">
                 <label htmlFor="address">
-                  Delivery Address <span className="req">*</span>
+                  Full Address <span className="req">*</span>
                 </label>
                 <textarea
                   {...fieldProps("address")}
                   required
                   autoComplete="street-address"
-                  placeholder="House/Road, Area, City, District"
+                  placeholder="House no., road, area or village"
                 />
                 <FieldError id="address" message={fieldErrors.address} />
               </div>
@@ -290,7 +389,9 @@ export default function OrderForm() {
               </div>
 
               <button type="submit" className="btn full" disabled={submitting}>
-                {submitting ? "Placing order…" : `Confirm Order — ${sym}${formatBDT(total)}`}
+                {submitting
+                  ? "Placing order…"
+                  : `Confirm Order — ${sym}${formatBDT(total)}${shipping == null ? " + delivery" : ""}`}
               </button>
 
               {error && <div className="form-msg error">{error}</div>}
@@ -332,8 +433,18 @@ export default function OrderForm() {
             ))}
 
             <div className="summary-row">
-              <span>Delivery</span>
-              <span style={{ color: "var(--success)" }}>FREE</span>
+              <span>
+                Delivery
+                {zone && <span className="summary-zone"> · {ZONE_LABEL[zone]}</span>}
+              </span>
+              {shipping == null ? (
+                <span className="summary-pending">Select district &amp; thana</span>
+              ) : (
+                <span>
+                  {sym}
+                  {formatBDT(shipping)}
+                </span>
+              )}
             </div>
             <div className="summary-row">
               <span>Total</span>
@@ -343,8 +454,9 @@ export default function OrderForm() {
               </span>
             </div>
             <p style={{ fontSize: "13px", color: "var(--muted)", marginTop: "16px" }}>
-              Cash on delivery is available across Bangladesh. Delivery takes 1–3 business days
-              inside Dhaka, 3–5 days outside.
+              Cash on delivery is available across Bangladesh. Delivery charge is {sym}60 inside
+              Dhaka city and {sym}130 outside. Delivery takes 1–3 business days inside Dhaka, 3–5
+              days outside.
             </p>
           </div>
         </div>

@@ -7,6 +7,10 @@ import HeroDetails from "../../components/HeroDetails";
 import Features from "../../components/Features";
 import Lifestyle from "../../components/Lifestyle";
 import OrderForm from "../../components/OrderForm";
+import ProductDetails from "../../components/ProductDetails";
+import Reviews from "../../components/Reviews";
+import Faq from "../../components/Faq";
+import RelatedProducts from "../../components/RelatedProducts";
 import { SelectionProvider } from "../../components/SelectionContext";
 import MobileOrderBar from "../../components/MobileOrderBar";
 import { SITE } from "../../site";
@@ -74,7 +78,11 @@ export default function ProductPage({ params }) {
 
       <Features product={product} />
       <Lifestyle product={product} />
+      <ProductDetails product={product} />
+      <Reviews product={product} />
       <OrderForm />
+      <Faq />
+      <RelatedProducts product={product} />
       <Footer />
       <MobileOrderBar />
     </SelectionProvider>

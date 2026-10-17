@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useSelection } from "./SelectionContext";
+import Lightbox, { ExpandIcon } from "./Lightbox";
 
 export default function ProductGallery({ product }) {
   const { selections } = useSelection();
@@ -14,11 +15,18 @@ export default function ProductGallery({ product }) {
   const images = override?.images || product?.images || [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(null); // full-size viewer, null = closed
+  const closeViewer = useCallback(() => setViewerIndex(null), []);
 
   // Show the first image of the new set whenever the selection swaps it.
   useEffect(() => {
     setActiveIndex(0);
   }, [override]);
+
+  // Keep the gallery on whichever image was last viewed full size.
+  useEffect(() => {
+    if (viewerIndex != null) setActiveIndex(viewerIndex);
+  }, [viewerIndex]);
 
   if (images.length === 0) return null;
   const active = images[activeIndex] || images[0];
@@ -35,7 +43,13 @@ export default function ProductGallery({ product }) {
   return (
     <div className="gallery">
       <div className="gallery-main">
-        <div className="next-image-wrap" style={{ opacity: fading ? 0 : 1 }}>
+        <button
+          type="button"
+          className="next-image-wrap gallery-open"
+          style={{ opacity: fading ? 0 : 1 }}
+          onClick={() => setViewerIndex(activeIndex)}
+          aria-label="View full size image"
+        >
           <Image
             src={active.src}
             alt={active.alt}
@@ -43,7 +57,11 @@ export default function ProductGallery({ product }) {
             sizes="(max-width: 800px) 100vw, 540px"
             priority
           />
-        </div>
+        </button>
+        <span className="expand-chip" aria-hidden="true">
+          <ExpandIcon size={14} />
+          Full size
+        </span>
       </div>
       {images.length > 1 && (
         <div className="gallery-thumbs">
@@ -65,6 +83,8 @@ export default function ProductGallery({ product }) {
           ))}
         </div>
       )}
+
+      <Lightbox images={images} index={viewerIndex} onIndexChange={setViewerIndex} onClose={closeViewer} />
     </div>
   );
 }

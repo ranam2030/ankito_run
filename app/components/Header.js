@@ -6,25 +6,30 @@ import OrderNowButton from "./OrderNowButton";
 // opens a product picker instead of jumping to #order.
 export default function Header({ pickProduct = false }) {
   return (
-    <header>
+    <header className="site-header">
       <div className="container nav">
         <Link href="/" className="logo" aria-label="Ankito home">
           <Image
-            src="/images/logo.jpg"
+            src="/images/logo-wordmark.png"
             alt="Ankito"
-            width={140}
-            height={44}
+            width={525}
+            height={299}
             priority
-            style={{ height: 44, width: "auto" }}
+            style={{ height: 48, width: "auto" }}
           />
         </Link>
-        {pickProduct ? (
-          <OrderNowButton />
-        ) : (
-          <a href="#order" className="cta">
-            Order Now
-          </a>
-        )}
+        <nav className="nav-links" aria-label="Main">
+          <Link href="/#products" className="nav-link">
+            Shop
+          </Link>
+          {pickProduct ? (
+            <OrderNowButton />
+          ) : (
+            <a href="#order" className="cta">
+              Order Now
+            </a>
+          )}
+        </nav>
       </div>
     </header>
   );

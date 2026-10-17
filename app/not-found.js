@@ -10,18 +10,19 @@ export default function NotFound() {
     <>
       <Header pickProduct />
 
-      <div className="container">
-        <section className="home-hero">
-          <h1 className="home-title">Sorry, we couldn&rsquo;t find that page</h1>
-          <p className="home-sub">It may have moved. Here&rsquo;s what we have in store:</p>
-        </section>
-
-        <div className="product-grid">
-          {PRODUCTS.map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
+      <section className="products-section">
+        <div className="container">
+          <div className="section-head">
+            <h1 className="home-title">Sorry, we couldn&rsquo;t find that page</h1>
+            <p>It may have moved. Here&rsquo;s what we have in store:</p>
+          </div>
+          <div className="product-grid">
+            {PRODUCTS.map((p) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <Footer />
     </>

@@ -1,5 +1,7 @@
 // Order form validation, shared by the client form and the /api/orders route.
 
+import { getDistrict, getThana } from "./locations";
+
 // Accepts 01XXXXXXXXX, +8801XXXXXXXXX or 8801XXXXXXXXX (spaces/dashes allowed)
 // and returns the local 11-digit form, or null if it isn't a valid BD mobile.
 export function normalizeBDPhone(value) {
@@ -13,11 +15,13 @@ export function normalizeBDPhone(value) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 // Returns { field: message } for every invalid field; empty object when valid.
-export function validateOrder({ name, phone, email, address, notes }) {
+export function validateOrder({ name, phone, email, district, thana, address, notes }) {
   const errors = {};
   name = String(name || "").trim();
   phone = String(phone || "").trim();
   email = String(email || "").trim();
+  district = String(district || "").trim();
+  thana = String(thana || "").trim();
   address = String(address || "").trim();
   notes = String(notes || "").trim();
 
@@ -33,9 +37,16 @@ export function validateOrder({ name, phone, email, address, notes }) {
   if (email && !EMAIL_RE.test(email))
     errors.email = "Enter a valid email address, e.g. name@example.com.";
 
+  if (!district) errors.district = "Please select your district.";
+  else if (!getDistrict(district)) errors.district = "Please select a district from the list.";
+
+  if (!thana) errors.thana = "Please select your thana / upazila.";
+  else if (!errors.district && !getThana(district, thana))
+    errors.thana = "Please select a thana from the list.";
+
   if (!address) errors.address = "Please enter your delivery address.";
   else if (address.length < 10)
-    errors.address = "Please give a fuller address (house/road, area, city).";
+    errors.address = "Please give a fuller address (house, road, area or village).";
   else if (address.length > 300) errors.address = "Address must be 300 characters or fewer.";
 
   if (notes.length > 500) errors.notes = "Notes must be 500 characters or fewer.";

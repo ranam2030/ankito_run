@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { PRODUCTS, formatBDT } from "../products";
@@ -55,7 +56,9 @@ export default function ProductPickerModal({ open, onClose }) {
 
   if (!open) return null;
 
-  return (
+  // Portal to <body>: the header's backdrop blur would otherwise become the
+  // containing block for this fixed overlay and clip it to the header bar.
+  return createPortal(
     <div
       className="modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -123,6 +126,7 @@ export default function ProductPickerModal({ open, onClose }) {
           </button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
