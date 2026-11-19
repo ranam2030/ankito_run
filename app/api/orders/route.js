@@ -4,7 +4,7 @@
 // JSON response instead of relying on no-cors mode.
 
 import { normalizeBDPhone, validateOrder } from "../../validation";
-import { getProduct } from "../../products";
+import { getProduct, defaultValue } from "../../products";
 import { ZONE_LABEL, deliveryCharge, deliveryZone, formatFullAddress } from "../../locations";
 
 export const runtime = "nodejs";
@@ -60,7 +60,10 @@ function priceOrder(product, requestedOptions, quantity, district, thana) {
   const options = [];
   for (const opt of product.options || []) {
     const v =
-      opt.values.find((x) => x.id === requested[opt.id]) || opt.values[0];
+      opt.values.find((x) => x.id === requested[opt.id]) || defaultValue(opt);
+    if (!v || v.outOfStock) {
+      return { error: `${v?.name || opt.label} is out of stock. Please choose another ${opt.label.toLowerCase()}.` };
+    }
     unitPrice += v.priceAdjust || 0;
     options.push({ optionId: opt.id, optionLabel: opt.label, valueId: v.id, valueName: v.name });
   }
@@ -120,6 +123,9 @@ export async function POST(request) {
   const district = String(payload.district).trim();
   const thana = String(payload.thana).trim();
   const priced = priceOrder(product, payload.options, quantity, district, thana);
+  if (priced.error) {
+    return Response.json({ ok: false, error: priced.error }, { status: 400 });
+  }
 
   // Same order resubmitted (double tap, refresh): return the original order.
   const dupKey = [phone, product.slug, priced.options.map((o) => o.valueId).join(","), quantity].join("|");

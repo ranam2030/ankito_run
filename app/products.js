@@ -3,8 +3,11 @@
 // Each product has:
 //   slug              — used in /products/[slug] URL and as a stable key
 //   options[]         — variant groups; each has type "swatch" or "choice"
-//   options[].values  — the choices in that group; first value is the default
+//   options[].values  — the choices in that group; the first in-stock value
+//                       is the default
 //   value.priceAdjust — optional, +/- BDT applied to unit price when picked
+//   value.outOfStock  — optional, true shows the value as "Out of stock" and
+//                       blocks it from being picked or ordered
 //   value.images      — optional, replaces the gallery images while picked
 //   details[]         — "Product details" rows: { label, value } (e.g. Size, Material)
 //   reviews[]         — real customer reviews: { name, location?, rating? (1–5), text };
@@ -76,10 +79,12 @@ export const PRODUCTS = [
         label: "Color",
         type: "swatch",
         values: [
+          { id: "walnut",  name: "Dark Walnut",  hex: "#5a3825" },
           {
             id: "natural",
             name: "Natural Beech",
             hex: "#d2a96e",
+            outOfStock: true,
             images: [
               { src: "/images/product-natural-beech.jpg", alt: "Natural beech door bell mounted on a stone wall" },
               { src: "/images/product-1.png",  alt: "Front view of wooden magnetic door bell" },
@@ -87,7 +92,6 @@ export const PRODUCTS = [
               { src: "/images/product-3.webp", alt: "Door bell on a wooden surface" },
             ],
           },
-          { id: "walnut",  name: "Dark Walnut",  hex: "#5a3825" },
         ],
       },
     ],
@@ -481,6 +485,11 @@ export const PRODUCTS = [
 
 export function getProduct(slug) {
   return PRODUCTS.find((p) => p.slug === slug) || null;
+}
+
+// Default value for an option group: the first one that's in stock.
+export function defaultValue(option) {
+  return option?.values?.find((v) => !v.outOfStock) || null;
 }
 
 export const formatBDT = (n) => Number(n).toLocaleString("en-IN");

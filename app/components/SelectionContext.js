@@ -1,12 +1,13 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { defaultValue } from "../products";
 
 const SelectionContext = createContext(null);
 
 /**
  * Wraps a single product page so its options can be selected and read by
- * any descendant. Each option's first value is the default selection.
+ * any descendant. Each option's first in-stock value is the default selection.
  *
  *   <SelectionProvider product={product}>
  *     <HeroDetails product={product} />
@@ -16,25 +17,27 @@ const SelectionContext = createContext(null);
 export function SelectionProvider({ product, fromUrl = false, children }) {
   const initial = {};
   for (const opt of product?.options || []) {
-    initial[opt.id] = opt.values?.[0]?.id;
+    initial[opt.id] = defaultValue(opt)?.id;
   }
 
   const [selections, setSelections] = useState(initial);
 
   // With fromUrl, preselect options passed as query params (e.g. ?color=walnut,
-  // set by the homepage product picker). Unknown options/values are ignored.
+  // set by the homepage product picker). Unknown or out-of-stock values are ignored.
   useEffect(() => {
     if (!fromUrl) return;
     const params = new URLSearchParams(window.location.search);
     const fromParams = {};
     for (const opt of product?.options || []) {
       const v = params.get(opt.id);
-      if (v && opt.values?.some((x) => x.id === v)) fromParams[opt.id] = v;
+      if (v && opt.values?.some((x) => x.id === v && !x.outOfStock)) fromParams[opt.id] = v;
     }
     if (Object.keys(fromParams).length) setSelections((s) => ({ ...s, ...fromParams }));
   }, [fromUrl, product]);
 
   function setSelection(optionId, valueId) {
+    const opt = product?.options?.find((o) => o.id === optionId);
+    if (opt?.values?.find((v) => v.id === valueId)?.outOfStock) return;
     setSelections((s) => ({ ...s, [optionId]: valueId }));
   }
 

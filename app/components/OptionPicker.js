@@ -28,15 +28,18 @@ export default function OptionPicker({ option }) {
       >
         {option.values.map((v) => {
           const selected = v.id === selectedId;
+          const soldOut = Boolean(v.outOfStock);
+          const label = soldOut ? `${v.name} (out of stock)` : v.name;
           return (
             <button
               key={v.id}
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-label={v.name}
-              title={v.name}
-              className={`option-pill${selected ? " selected" : ""}`}
+              aria-label={label}
+              title={label}
+              disabled={soldOut}
+              className={`option-pill${selected ? " selected" : ""}${soldOut ? " out-of-stock" : ""}`}
               onClick={() => setSelection(option.id, v.id)}
             >
               {option.type === "swatch" && (
@@ -53,6 +56,7 @@ export default function OptionPicker({ option }) {
                   {v.priceAdjust}
                 </span>
               ) : null}
+              {soldOut && <span className="option-pill-stock">Out of stock</span>}
             </button>
           );
         })}

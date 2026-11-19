@@ -11,7 +11,10 @@ export default function ProductDetails({ product }) {
     ...(product.options || []).map((opt) => ({
       label: opt.label,
       value: opt.values
-        .map((v) => (v.priceAdjust ? `${v.name} (+${sym}${formatBDT(v.priceAdjust)})` : v.name))
+        .map((v) => {
+          if (v.outOfStock) return `${v.name} (out of stock)`;
+          return v.priceAdjust ? `${v.name} (+${sym}${formatBDT(v.priceAdjust)})` : v.name;
+        })
         .join(", "),
     })),
     { label: "Delivery", value: "৳60 inside Dhaka city · ৳130 outside Dhaka · 1–3 days in Dhaka, 3–5 days outside" },
