@@ -79,7 +79,7 @@ export const PRODUCTS = [
         label: "Color",
         type: "swatch",
         values: [
-          { id: "walnut",  name: "Dark Walnut",  hex: "#5a3825" },
+          { id: "walnut",  name: "Dark Walnut",  hex: "#5a3825", outOfStock: true },
           {
             id: "natural",
             name: "Natural Beech",
@@ -490,6 +490,12 @@ export function getProduct(slug) {
 // Default value for an option group: the first one that's in stock.
 export function defaultValue(option) {
   return option?.values?.find((v) => !v.outOfStock) || null;
+}
+
+// True when some option group has nothing left in stock, so the product
+// can't be ordered at all.
+export function isSoldOut(product) {
+  return (product?.options || []).some((opt) => opt.values?.length && !defaultValue(opt));
 }
 
 export const formatBDT = (n) => Number(n).toLocaleString("en-IN");

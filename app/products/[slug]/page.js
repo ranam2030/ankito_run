@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProduct, PRODUCTS } from "../../products";
+import { getProduct, PRODUCTS, isSoldOut } from "../../products";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import ProductGallery from "../../components/ProductGallery";
@@ -51,7 +51,9 @@ function productJsonLd(product) {
       url: new URL(`/products/${product.slug}`, SITE.url).href,
       price: product.price,
       priceCurrency: product.currency,
-      availability: "https://schema.org/InStock",
+      availability: isSoldOut(product)
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
     },
   };

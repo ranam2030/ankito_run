@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatBDT } from "../products";
+import { formatBDT, isSoldOut } from "../products";
+import { whatsappLink } from "../site";
 import SuccessModal from "./SuccessModal";
 import { useSelection } from "./SelectionContext";
 import { normalizeBDPhone, validateOrder } from "../validation";
@@ -118,6 +119,27 @@ export default function OrderForm() {
   }, []);
 
   if (!product) return null;
+
+  if (isSoldOut(product)) {
+    const wa = whatsappLink(`Hi Ankito! Please let me know when the ${product.shortName} is back in stock.`);
+    return (
+      <section id="order">
+        <div className="container">
+          <h2>Currently out of stock</h2>
+          <p style={{ color: "var(--muted)", marginTop: "-12px", marginBottom: "24px" }}>
+            Sorry, the {product.shortName} is sold out right now, so we can&rsquo;t take orders for it.
+            {wa && " Message us on WhatsApp and we’ll let you know when it’s back."}
+          </p>
+          {wa && (
+            <a href={wa} className="btn btn-outline" target="_blank" rel="noopener noreferrer">
+              Notify me on WhatsApp
+            </a>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   const sym = product.currencySymbol;
   const subtotal = finalUnitPrice * quantity;
   const zone = deliveryZone(district, thana);

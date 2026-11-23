@@ -4,7 +4,7 @@
 // JSON response instead of relying on no-cors mode.
 
 import { normalizeBDPhone, validateOrder } from "../../validation";
-import { getProduct, defaultValue } from "../../products";
+import { getProduct, defaultValue, isSoldOut } from "../../products";
 import { ZONE_LABEL, deliveryCharge, deliveryZone, formatFullAddress } from "../../locations";
 
 export const runtime = "nodejs";
@@ -109,6 +109,9 @@ export async function POST(request) {
   const product = getProduct(payload.productSlug);
   if (!product) {
     return Response.json({ ok: false, error: "Unknown product." }, { status: 400 });
+  }
+  if (isSoldOut(product)) {
+    return Response.json({ ok: false, error: "Sorry, this product is out of stock." }, { status: 400 });
   }
 
   // Honeypot: the "website" field is hidden from people, so only bots fill it.

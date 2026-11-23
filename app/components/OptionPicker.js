@@ -19,7 +19,7 @@ export default function OptionPicker({ option }) {
   return (
     <div className="option-picker">
       <div className="option-picker-label">
-        {option.label}: <strong>{selectedValue?.name}</strong>
+        {option.label}: <strong>{selectedValue?.name || "Out of stock"}</strong>
       </div>
       <div
         className={`option-pills option-pills-${option.type || "choice"}`}

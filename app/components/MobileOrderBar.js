@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatBDT } from "../products";
+import { formatBDT, isSoldOut } from "../products";
 import { useSelection } from "./SelectionContext";
 
 // Sticky "Order Now" bar on phones; hides once the order form is on screen.
+// Not shown at all while the product is out of stock.
 export default function MobileOrderBar() {
   const { product, finalUnitPrice } = useSelection();
   const [formVisible, setFormVisible] = useState(false);
@@ -17,7 +18,7 @@ export default function MobileOrderBar() {
     return () => io.disconnect();
   }, []);
 
-  if (!product) return null;
+  if (!product || isSoldOut(product)) return null;
 
   return (
     <div className={`mobile-order-bar${formVisible ? " hidden" : ""}`} aria-hidden={formVisible}>

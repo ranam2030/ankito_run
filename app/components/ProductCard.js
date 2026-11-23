@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { formatBDT } from "../products";
+import { formatBDT, isSoldOut } from "../products";
 
 export default function ProductCard({ product }) {
   if (!product) return null;
@@ -10,6 +10,7 @@ export default function ProductCard({ product }) {
   const save = (product.oldPrice || 0) - product.price;
   const href = `/products/${product.slug}`;
   const sizes = "(max-width: 600px) 100vw, (max-width: 900px) 50vw, 360px";
+  const soldOut = isSoldOut(product);
 
   return (
     <div className="product-card">
@@ -33,9 +34,15 @@ export default function ProductCard({ product }) {
         </div>
       </Link>
       <div className="product-card-actions">
-        <Link href={`${href}#order`} className="btn">
-          Order Now
-        </Link>
+        {soldOut ? (
+          <button type="button" className="btn" disabled>
+            Out of stock
+          </button>
+        ) : (
+          <Link href={`${href}#order`} className="btn">
+            Order Now
+          </Link>
+        )}
         <Link href={href} className="btn btn-outline">
           View details
         </Link>

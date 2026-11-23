@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { PRODUCTS, formatBDT } from "../products";
+import { PRODUCTS, formatBDT, isSoldOut } from "../products";
 import OptionPicker from "./OptionPicker";
 import { SelectionProvider, useSelection } from "./SelectionContext";
 import { trackEvent } from "../analytics";
@@ -80,6 +80,7 @@ export default function ProductPickerModal({ open, onClose }) {
         <div className="picker-list" role="radiogroup" aria-label="Products">
           {PRODUCTS.map((p) => {
             const selected = p.slug === slug;
+            const soldOut = isSoldOut(p);
             const cover = p.images?.[0];
             return (
               <button
@@ -87,6 +88,7 @@ export default function ProductPickerModal({ open, onClose }) {
                 type="button"
                 role="radio"
                 aria-checked={selected}
+                disabled={soldOut}
                 className={`picker-item${selected ? " selected" : ""}`}
                 onClick={() => setSlug(p.slug)}
               >
@@ -105,6 +107,7 @@ export default function ProductPickerModal({ open, onClose }) {
                       </s>
                     )}
                   </span>
+                  {soldOut && <span className="picker-stock">Out of stock</span>}
                 </span>
               </button>
             );

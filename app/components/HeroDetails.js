@@ -1,4 +1,4 @@
-import { formatBDT } from "../products";
+import { formatBDT, isSoldOut } from "../products";
 import OptionPicker from "./OptionPicker";
 import TrustBar from "./TrustBar";
 
@@ -14,6 +14,7 @@ export default function HeroDetails({ product }) {
   if (!product) return null;
   const sym = product.currencySymbol;
   const save = (product.oldPrice || 0) - product.price;
+  const soldOut = isSoldOut(product);
 
   return (
     <div className="hero-details">
@@ -30,18 +31,31 @@ export default function HeroDetails({ product }) {
           </>
         )}
       </div>
-      <div className="stock">
-        <span className="dot" />
-        In stock — ships in 1–2 days
-      </div>
+      {soldOut ? (
+        <div className="stock stock-out">
+          <span className="dot" />
+          Out of stock — currently unavailable
+        </div>
+      ) : (
+        <div className="stock">
+          <span className="dot" />
+          In stock — ships in 1–2 days
+        </div>
+      )}
 
       {(product.options || []).map((opt) => (
         <OptionPicker key={opt.id} option={opt} />
       ))}
 
-      <a href="#order" className="btn btn-lg">
-        Order Now — Cash on Delivery
-      </a>
+      {soldOut ? (
+        <button type="button" className="btn btn-lg" disabled>
+          Out of stock
+        </button>
+      ) : (
+        <a href="#order" className="btn btn-lg">
+          Order Now — Cash on Delivery
+        </a>
+      )}
       <TrustBar compact />
 
       {product.perks?.length > 0 && (

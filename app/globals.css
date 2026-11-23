@@ -604,6 +604,15 @@ section h2 {
   box-shadow: 0 0 0 3px rgba(47, 122, 69, 0.15);
 }
 
+.stock.stock-out {
+  color: var(--danger);
+}
+
+.stock.stock-out .dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.15);
+}
+
 .perks {
   list-style: none;
   padding: 22px 0 0;
@@ -1567,6 +1576,21 @@ button.gallery-open {
 .picker-item.selected {
   border-color: var(--brand);
   background: var(--brand-tint);
+}
+
+.picker-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.picker-item:disabled:hover {
+  border-color: var(--line);
+}
+
+.picker-stock {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
 }
 
 .picker-thumb {
