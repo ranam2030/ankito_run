@@ -288,6 +288,15 @@ export const PRODUCTS = [
         type: "swatch",
         values: [
           {
+            id: "cream",
+            name: "Cream White",
+            hex: "#ece4d4",
+            images: [
+              { src: "/images/canvas-tote-cream-1.jpg", alt: "Cream white canvas tote bag with cat print on a bench" },
+              { src: "/images/canvas-tote-cream-2.jpg", alt: "Cream white canvas tote carried on the shoulder" },
+            ],
+          },
+          {
             id: "brown",
             name: "Brown",
             hex: "#8b6a3e",
@@ -295,15 +304,6 @@ export const PRODUCTS = [
               { src: "/images/canvas-tote-cover.jpg",   alt: "Brown canvas tote bag with cat print on a wooden table" },
               { src: "/images/canvas-tote-brown-1.jpg", alt: "Close-up of the brown tote's cat print and handles" },
               { src: "/images/canvas-tote-brown-2.jpg", alt: "Brown canvas tote hanging on a clothes rack" },
-            ],
-          },
-          {
-            id: "cream",
-            name: "Cream White",
-            hex: "#ece4d4",
-            images: [
-              { src: "/images/canvas-tote-cream-1.jpg", alt: "Cream white canvas tote bag with cat print on a bench" },
-              { src: "/images/canvas-tote-cream-2.jpg", alt: "Cream white canvas tote carried on the shoulder" },
             ],
           },
         ],
