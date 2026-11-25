@@ -300,6 +300,7 @@ export const PRODUCTS = [
             id: "brown",
             name: "Brown",
             hex: "#8b6a3e",
+            outOfStock: true,
             images: [
               { src: "/images/canvas-tote-cover.jpg",   alt: "Brown canvas tote bag with cat print on a wooden table" },
               { src: "/images/canvas-tote-brown-1.jpg", alt: "Close-up of the brown tote's cat print and handles" },
